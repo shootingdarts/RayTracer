@@ -3,7 +3,7 @@
 # Materials come next 
 # Teapot geometry specified at end
 
-size 600 400
+size 160 100
 camera 0 0 5 0 0 0 0 1 0 90.0
 maxdepth 5
 
@@ -18,4 +18,4 @@ maxdepth 5
 
 # teapot 2
 
-output image.jpg
+output image.png
