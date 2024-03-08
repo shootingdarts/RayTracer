@@ -12,8 +12,23 @@
 #define MAINPROGRAM 
 #include "readfile.h"
 #include "variables.h"
+#include "variables.cpp"
+
 
 using namespace std;
+
+Image Raytrace(Camera cam, Scene scene, int width, int height) {
+	Image image = new Image(width, height);
+	for (int i = 0; i < height; i++) {
+		for (int j = 0; j < width; j++) {
+			Ray ray = RayThruPixel(cam, i, j);
+			Intersection hit = Intersect(ray, scene);
+			image[i][j] = FindColor(hit);
+		}
+	}
+	return image;
+}
+
 
 int main(int argc, char* argv[]) {
 	cout << "hello" << endl;
