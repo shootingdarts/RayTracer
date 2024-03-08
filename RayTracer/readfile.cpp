@@ -4,9 +4,12 @@
 #include <sstream>
 #include <deque>
 #include <stack>
+#include <glm/glm.hpp>
 
 using namespace std;
 #include "readfile.h"
+#include "variables.h"
+#include "Transform.h"
 
 bool readvals(stringstream& s, const int numvals, float* values)
 {
@@ -32,8 +35,31 @@ void readfile(const char* filename)
                 stringstream s(str);
                 s >> cmd;
                 int i;
+                float values[10];
                 bool validinput;
                 if (cmd == "camera") {
+                    validinput = readvals(s, 10, values);
+                    for (i = 0; i < 10; i++) {
+                        eyeinit = vec3(values[0], values[1], values[2]);
+                        center = vec3(values[3], values[4], values[5]);
+                        upinit = Transform::upvector(vec3(values[6], values[7], values[8]), eyeinit - center);
+                        fovy = values[9];
+                    }
+                }
+                else if (cmd == "size") {
+                    validinput = readvals(s, 2, values);
+                    w = values[0];
+                    h = values[1];
+                }
+                else if (cmd == "maxdepth") {
+                    validinput = readvals(s, 1, values);
+                    depth = values[0];
+                }
+                else if (cmd == "output") {
+                    s >> outputFile;
+                }
+                else if (cmd == "sphere") {
+                    validinput = readvals(s, 4, values);
 
                 }
                 else {
