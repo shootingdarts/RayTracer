@@ -42,6 +42,19 @@ int main(int argc, char* argv[]) {
 	cout << "depth: " << depth << endl;
 	cout << "output: " << outputFile << endl;
 	FreeImage_Initialise();
+
+	int pix = w * h;
+	BYTE* pixels = new BYTE[3*pix];
+	pixels[0] = 0;
+	pixels[1] = 0;
+	pixels[2] = 0;
+	pixels[6] = 255;
+	pixels[7] = 0;
+	pixels[8] = 0;
+	FIBITMAP* img = FreeImage_ConvertFromRawBits(pixels, w, h, w * 3, 24, 0xFF0000, 0x00FF00, 0x0000FF, false);
+	FreeImage_Save(FIF_PNG, img, outputFile.c_str(), 0);
+
 	FreeImage_DeInitialise();
+	delete pixels;
 	return 0;
 }
