@@ -18,9 +18,9 @@ public:
         // Sphere intersection logic...
         Intersection result;
         // Set result.hit, result.distance, result.point, result.normal
-        float a = ray.direction * ray.direction;
-        float b = 2 * ray.direction * (ray.origin - center);
-        float c = (ray.center - center) * (ray.center - center) - radius * radius;
+        float a = dot(ray.direction, ray.direction);
+        float b = 2 * dot(ray.direction, (ray.origin - center));
+        float c = dot((ray.origin - center), (ray.origin - center)) - radius * radius;
 
         float delta = b * b - 4 * a * c;
         if (delta < 0) {
@@ -34,23 +34,23 @@ public:
             if (t1 <= t2) {
                 result.distance = t1;
                 result.point = ray.direction * t1 + ray.origin;
-                result.nomral = result.point - center;
+                result.normal = result.point - center;
             }
             else {
                 result.distance = t2;
                 result.point = ray.direction * t2 + ray.origin;
-                result.nomral = result.point - center;
+                result.normal = result.point - center;
             }
         }
         else if (t1 > 0) {
             result.distance = t1;
             result.point = ray.direction * t1 + ray.origin;
-            result.nomral = result.point - center;
+            result.normal = result.point - center;
         }
         else if (t2 > 0) {
             result.distance = t2;
             result.point = ray.direction * t2 + ray.origin;
-            result.nomral = result.point - center;
+            result.normal = result.point - center;
         }
         return result;
     }
