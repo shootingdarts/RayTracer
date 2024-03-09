@@ -9,6 +9,32 @@
 #define EXTERN extern 
 #endif
 
+// abstract class
+class SceneObject {
+public:
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    float shininess;
+    vec3 emission;
+    virtual Intersection intersect(const Ray& ray) = 0;
+};
+
+class Triangle : public SceneObject {
+    vec3 v0, v1, v2;
+public:
+    Triangle(const vec3& v0, const vec3& v1, const vec3& v2);
+    Intersection intersect(const Ray& ray);
+};
+
+class Sphere : public SceneObject {
+    vec3 center;
+    float radius;
+public:
+    Sphere(const vec3& center, float radius);
+    Intersection intersect(const Ray& ray);
+};
+
 // Ray structure
 struct Ray {
     vec3 origin;
@@ -21,7 +47,7 @@ struct Ray {
 struct Intersection {
     bool hit;
     float distance;
-    SceneObject* obj_light;
+    SceneObject *obj_light;
     vec3 point;
     vec3 normal;
 
@@ -59,39 +85,7 @@ struct Light {
     vec3 color;
 };
 
-// abstract class
-class SceneObject {
-public:
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
-    float shininess;
-    vec3 emission;
-    virtual Intersection intersect(const Ray& ray) = 0;
-};
-
-class Triangle : public SceneObject {
-    vec3 v0, v1, v2;
-public:
-    Triangle(const vec3& v0, const vec3& v1, const vec3& v2);
-    Intersection intersect(const Ray& ray) override;
-};
-
-class Sphere : public SceneObject {
-    vec3 center;
-    float radius;
-public:
-    Sphere(const vec3& center, float radius);
-    Intersection intersect(const Ray& ray) override;
-};
-
-class Scene {
-    std::vector<SceneObject*> objects;
-public:
-    void addObject(SceneObject* object);
-    Intersection findClosestIntersection(const Ray& ray);
-};
-
+Intersection findClosestIntersection(const Ray& ray);
 vec3 findColor(const Intersection& hit);
 
 EXTERN int w, h;
@@ -100,7 +94,7 @@ EXTERN int maxvertex;
 
 EXTERN std::string outputFile;
 EXTERN Camera cam;
-EXTERN Scene currScene;
+EXTERN std::vector<SceneObject*> currScene;
 
 EXTERN vec3 currAmbient = vec3(0.2, 0.2, 0.2);
 EXTERN vec3 currDiffuse = vec3(0, 0, 0);

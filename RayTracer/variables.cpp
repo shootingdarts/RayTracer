@@ -1,4 +1,5 @@
 #include <glm/glm.hpp>
+#include <algorithm>
 #include "variables.h"
 
 class Sphere : public SceneObject {
@@ -8,7 +9,7 @@ class Sphere : public SceneObject {
 public:
     Sphere(const vec3& center, float radius) : center(center), radius(radius) {}
 
-    Intersection intersect(const Ray& ray) override {
+    Intersection intersect(const Ray& ray){
         // Sphere intersection logic...
         Intersection result;
         // Set result.hit, result.distance, result.point, result.normal
@@ -56,7 +57,7 @@ class Triangle : public SceneObject {
 public:
     Triangle(const vec3& v0, const vec3& v1, const vec3& v2) : v0(v0), v1(v1), v2(v2) {}
 
-    Intersection intersect(const Ray& ray) override {
+    Intersection intersect(const Ray& ray){
         // Implement Möller–Trumbore intersection algorithm
         Intersection result;
         // Calculate intersection, set result.hit, result.distance, result.point, result.normal
@@ -80,29 +81,10 @@ public:
 };
 
 // Scene class containing all scene objects
-class Scene {
-    std::vector<SceneObject*> objects;
-
-public:
-    void addObject(SceneObject* object) {
-        objects.push_back(object);
-    }
-
-    Intersection findClosestIntersection(const Ray& ray) {
-        Intersection closestIntersection;
-        for (auto& object : objects) {
-            Intersection intersection = object->intersect(ray);
-            if (intersection.hit && intersection.distance < closestIntersection.distance) {
-                closestIntersection = intersection;
-            }
-        }
-        return closestIntersection;
-    }
-};
 
 Intersection findClosestIntersection(const Ray& ray) {
     Intersection closestIntersection;
-    for (auto& object : objects) {
+    for (auto& object : currScene) {
         Intersection intersection = object->intersect(ray);
         if (intersection.hit && intersection.distance < closestIntersection.distance) {
             closestIntersection = intersection;
@@ -120,10 +102,18 @@ vec3 findColor(const Intersection& hit) {
     if (hit.hit) {
         for (int i = 0; i < lights.size(); i++) {
             Light curr_light = lights[i];
+            bool blocked = false;
 
             if (curr_light.type == 0) {
                 Ray dir = Ray(hit.point, -curr_light.direction);
-                if (findClosestIntersection(dir).hit == false) {
+                for (auto& object : currScene) {
+                    Intersection intersection = object->intersect(dir);
+                    if (intersection.hit) {
+                        blocked = true;
+                        break;
+                    }
+                }
+                if (blocked) {
                     continue;
                 }
                 NL = dot(hit.normal, curr_light.direction);
@@ -131,15 +121,24 @@ vec3 findColor(const Intersection& hit) {
                 NH = dot(hit.normal, halfvec);
             }
             else {
-                Ray pt = Ray(hit.point, curr_light.location - hit.point);
-                if (findClosestIntersection(pt).hit == false) {
+                vec3 direction = curr_light.location - hit.point;
+                Ray pt = Ray(hit.point + direction * float(pow(10, -6)), direction);
+                for (auto& object : currScene) {
+                    Intersection intersection = object->intersect(pt);
+                    if (intersection.hit && intersection.distance < direction.length()) {
+                        blocked = true;
+                        break;
+                    }
+                }
+                if (blocked) {
                     continue;
                 }
                 NL = dot(hit.normal, (curr_light.location - hit.point));
                 vec3 halfvec = (curr_light.location - hit.point) + (cam.position - hit.point);
                 NH = dot(hit.normal, halfvec);
             }
-            vec3 eachLight = dot(hit.obj_light->diffuse, max(NL, 0)) + dot(hit.obj_light->specular, power(max(NH, 0), hit.obj_light->shininess));
+            NL = 0;
+            vec3 eachLight = hit.obj_light->diffuse * std::max(NL, float(0.0)) + hit.obj_light->specular * pow(std::max(NH, float(0.0)), hit.obj_light->shininess);
             eachLight = (curr_light.color / curr_light.attenuation) * eachLight;
             I = I + eachLight;
         }

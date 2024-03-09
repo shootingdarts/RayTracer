@@ -46,7 +46,7 @@ void readfile(const char* filename)
                         cam.direction = normalize(cam.position - center);
                         cam.u = normalize(cross(up, cam.direction));
                         cam.v = cross(cam.direction, cam.u);
-                        cam.fovy = values[9];
+                        cam.fovy = values[9] / 180 * pi;
                     }
                 }
                 else if (cmd == "attenuation") {
@@ -107,7 +107,7 @@ void readfile(const char* filename)
                     sph.emission = currEmission;
                     sph.shininess = currShininess;
                     sph.specular = currSpecular;
-                    currScene.addObject(&sph);
+                    currScene.push_back(&sph);
                 }
                 else if (cmd == "tri") {
                     validinput = readvals(s, 3, values);
@@ -117,7 +117,7 @@ void readfile(const char* filename)
                     tri.emission = currEmission;
                     tri.shininess = currShininess;
                     tri.specular = currSpecular;
-                    currScene.addObject(&tri);
+                    currScene.push_back(&tri);
                 }
                 else if (cmd == "size") {
                     validinput = readvals(s, 2, values);
