@@ -113,10 +113,29 @@ public:
 
 // Function to find the color at a hit
 vec3 findColor(const Intersection& hit) {
+    vec3 I;
+
     if (hit.hit) {
-        //HW2
+        for (int i = 0; i < lights.size(); i++) {
+            Light curr_light = lights[i];
+            if (curr_light.type == 0) {
+                float NL = dot(hit.normal, curr_light.direction);
+                vec3 halfvec = curr_light.direction + (cam.position - hit.point);
+                float NH = dot(hit.normal, halfvec);
+            }
+            else {
+                float NL = dot(hit.normal, (curr_light.locaiton - hit.point));
+                vec3 halfvec = (curr_light.location - hit.point) + (cam.position - hit.point);
+                float NH = dot(hit.normal, halfvec);
+            }
+            vec3 eachLight = dot(hit.obj_light.diffuse, max(NL, 0)) + dot(hit.obj_light.specular, power(max(NH, 0), hit.obj_light.shininess));
+            eachLight 
+            I = I + eachLight;
+        }
+        I = hit.obj_light.ambient + hit.obj_light.emission;
     }
     else {
-        //Background color
+        
     }
+    return I;
 }
