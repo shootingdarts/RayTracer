@@ -40,10 +40,13 @@ void readfile(const char* filename)
                 if (cmd == "camera") {
                     validinput = readvals(s, 10, values);
                     for (i = 0; i < 10; i++) {
-                        eyeinit = vec3(values[0], values[1], values[2]);
-                        center = vec3(values[3], values[4], values[5]);
-                        upinit = Transform::upvector(vec3(values[6], values[7], values[8]), eyeinit - center);
-                        fovy = values[9];
+                        vec3 center = vec3(values[3], values[4], values[5]);
+                        vec3 up = vec3(values[6], values[7], values[8]);
+                        cam.position = vec3(values[0], values[1], values[2]);
+                        cam.direction = normalize(cam.position - center);
+                        cam.u = normalize(cross(up, cam.direction));
+                        cam.v = cross(cam.direction, cam.u);
+                        cam.fovy = values[9];
                     }
                 }
                 else if (cmd == "size") {

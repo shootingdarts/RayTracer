@@ -24,13 +24,13 @@ Ray rayThruPixel(Camera cam, float i, float j) {
 	return Ray(cam.position, normalize(p1));
 }
 
-Image Raytrace(Camera cam, Scene scene, int width, int height) {
+Image raytrace(Camera cam, Scene scene, int width, int height) {
 	Image image = Image(width, height);
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
 			Ray ray = rayThruPixel(cam, i + 0.5, j + 0.5);
 			Intersection hit = scene.findClosestIntersection(ray);
-			vec3 color = FindColor(hit);
+			vec3 color = findColor(hit);
 		}
 	}
 	return image;
@@ -45,20 +45,6 @@ int main(int argc, char* argv[]) {
 		exit(-1);
 	}
 	readfile(argv[1]);
-	cout << fovy << endl;
-	
-	for (int i = 0; i < 3; i++) {
-		cout << eyeinit[i] << " ";
-	}
-	cout << endl;
-	for (int i = 0; i < 3; i++) {
-		cout << center[i] << " ";
-	}
-	cout << endl;
-	for (int i = 0; i < 3; i++) {
-		cout << upinit[i] << " ";
-	}
-	cout << endl;
 	cout << "width: " << w << endl;
 	cout << "height: " << h << endl;
 	cout << "depth: " << depth << endl;
@@ -67,12 +53,7 @@ int main(int argc, char* argv[]) {
 
 	int pix = w * h;
 	BYTE* pixels = new BYTE[3*pix];
-	pixels[0] = 0;
-	pixels[1] = 0;
-	pixels[2] = 0;
-	pixels[6] = 255;
-	pixels[7] = 0;
-	pixels[8] = 0;
+	
 	FIBITMAP* img = FreeImage_ConvertFromRawBits(pixels, w, h, w * 3, 24, 0xFF0000, 0x00FF00, 0x0000FF, false);
 	FreeImage_Save(FIF_PNG, img, outputFile.c_str(), 0);
 
