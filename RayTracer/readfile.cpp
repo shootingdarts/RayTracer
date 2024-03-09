@@ -49,6 +49,66 @@ void readfile(const char* filename)
                         cam.fovy = values[9];
                     }
                 }
+                else if (cmd == "attenuation") {
+                    validinput = readvals(s, 3, values);
+                    currAttenuation = vec3(values[0], values[1], values[2]);
+                }
+                else if (cmd == "directional") {
+                    validinput = readvals(s, 6, values);
+                    Light direct;
+                    direct.attenuation = currAttenuation;
+                    direct.direction = vec3(values[0], values[1], values[2]);
+                    direct.type = directional;
+                    lights.push_back(direct);
+                }
+                else if (cmd == "ambient") {
+                    validinput = readvals(s, 3, values);
+                    currAmbient = vec3(values[0], values[1], values[2]);
+                }
+                else if (cmd == "diffuse") {
+                    validinput = readvals(s, 3, values);
+                    currDiffuse = vec3(values[0], values[1], values[2]);
+                }
+                else if (cmd == "specular") {
+                    validinput = readvals(s, 3, values);
+                    currSpecular = vec3(values[0], values[1], values[2]);
+                }
+                else if (cmd == "shiniess") {
+                    validinput = readvals(s, 1, values);
+                    currShininess = values[0];
+                }
+                else if (cmd == "emission") {
+                    validinput = readvals(s, 3, values);
+                    currEmission = vec3(values[0], values[1], values[2]);
+                }
+                else if (cmd == "maxverts") {
+                    validinput = readvals(s, 1, values);
+                    maxvertex = values[0];
+                }
+                else if (cmd == "vertex") {
+                    validinput = readvals(s, 3, values);
+                    vertices.push_back(vec3(values[0], values[1], values[2]));
+                }
+                else if (cmd == "sphere") {
+                    validinput = readvals(s, 4, values);
+                    Sphere sph = Sphere(vec3(values[0], values[1], values[2]), values[3]);
+                    sph.ambient = currAmbient;
+                    sph.diffuse = currDiffuse;
+                    sph.emission = currEmission;
+                    sph.shininess = currShininess;
+                    sph.specular = currSpecular;
+                    currScene.addObject(&sph);
+                }
+                else if (cmd == "tri") {
+                    validinput = readvals(s, 3, values);
+                    Triangle tri = Triangle(vertices[values[0]], vertices[values[1]], vertices[values[2]]);
+                    tri.ambient = currAmbient;
+                    tri.diffuse = currDiffuse;
+                    tri.emission = currEmission;
+                    tri.shininess = currShininess;
+                    tri.specular = currSpecular;
+                    currScene.addObject(&tri);
+                }
                 else if (cmd == "size") {
                     validinput = readvals(s, 2, values);
                     w = values[0];

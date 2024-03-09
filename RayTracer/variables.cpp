@@ -1,17 +1,6 @@
 #include <glm/glm.hpp>
 #include "variables.h"
 
-// Abstract class for scene objects
-class SceneObject {
-public:
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
-    float shininess;
-    vec3 emission;
-    virtual Intersection intersect(const Ray& ray) = 0;
-};
-
 class Sphere : public SceneObject {
     vec3 center;
     float radius;
