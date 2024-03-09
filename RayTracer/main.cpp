@@ -12,7 +12,6 @@
 #define MAINPROGRAM 
 #include "readfile.h"
 #include "variables.h"
-#include "variables.cpp"
 
 
 using namespace std;
@@ -24,13 +23,17 @@ Ray rayThruPixel(Camera cam, float i, float j) {
 	return Ray(cam.position, normalize(p1));
 }
 
-Image raytrace(Camera cam, Scene scene, int width, int height) {
-	Image image = Image(width, height);
-	for (int i = 0; i < height; i++) {
-		for (int j = 0; j < width; j++) {
+BYTE* raytrace(Camera cam, Scene scene, int width, int height, BYTE* pixels) {
+	BYTE* image = pixels;
+	for (int j = 0; j < height; j++) {
+		for (int i = 0; i < width; i++) {
 			Ray ray = rayThruPixel(cam, i + 0.5, j + 0.5);
 			Intersection hit = scene.findClosestIntersection(ray);
 			vec3 color = findColor(hit);
+			int pixelNumber = j * width + i;
+			pixels[pixelNumber * 3] = color.z;
+			pixels[pixelNumber * 3 + 1] = color.y;
+			pixels[pixelNumber * 3 + 2] = color.x;
 		}
 	}
 	return image;
@@ -45,18 +48,12 @@ int main(int argc, char* argv[]) {
 		exit(-1);
 	}
 	readfile(argv[1]);
-	cout << "width: " << w << endl;
-	cout << "height: " << h << endl;
-	cout << "depth: " << depth << endl;
-	cout << "output: " << outputFile << endl;
 	FreeImage_Initialise();
-
 	int pix = w * h;
 	BYTE* pixels = new BYTE[3*pix];
-	
-	FIBITMAP* img = FreeImage_ConvertFromRawBits(pixels, w, h, w * 3, 24, 0xFF0000, 0x00FF00, 0x0000FF, false);
+	raytrace(cam, currScene, w, h, pixels);
+	FIBITMAP* img = FreeImage_ConvertFromRawBits(pixels, w, h, w * 3, 24, 0xFF0000, 0x00FF00, 0x0000FF, true);
 	FreeImage_Save(FIF_PNG, img, outputFile.c_str(), 0);
-
 	FreeImage_DeInitialise();
 	delete pixels;
 	return 0;
