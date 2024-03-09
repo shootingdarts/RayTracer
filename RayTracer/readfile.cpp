@@ -59,7 +59,17 @@ void readfile(const char* filename)
                     direct.attenuation = currAttenuation;
                     direct.direction = vec3(values[0], values[1], values[2]);
                     direct.type = directional;
+                    direct.color = vec3(values[3], values[4], values[5]);
                     lights.push_back(direct);
+                }
+                else if (cmd == "point") {
+                    validinput = readvals(s, 6, values);
+                    Light pt;
+                    pt.attenuation = currAttenuation;
+                    pt.direction = vec3(values[0], values[1], values[2]);
+                    pt.type = point;
+                    pt.color = vec3(values[3], values[4], values[5]);
+                    lights.push_back(pt);
                 }
                 else if (cmd == "ambient") {
                     validinput = readvals(s, 3, values);
