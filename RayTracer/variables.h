@@ -21,7 +21,7 @@ struct Ray {
 struct Intersection {
     bool hit;
     float distance;
-    SceneObject obj_light;
+    SceneObject* obj_light;
     vec3 point;
     vec3 normal;
 
