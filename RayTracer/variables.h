@@ -54,6 +54,7 @@ struct Light {
     light type;
     vec3 direction;
     vec3 locaiton;
+    vec3 attenuation;
 };
 
 EXTERN int w, h;
