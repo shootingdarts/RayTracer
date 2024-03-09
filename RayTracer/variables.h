@@ -92,6 +92,8 @@ public:
     Intersection findClosestIntersection(const Ray& ray);
 };
 
+vec3 findColor(const Intersection& hit);
+
 EXTERN int w, h;
 EXTERN int depth;
 EXTERN int maxvertex;
