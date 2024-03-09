@@ -17,10 +17,10 @@
 
 using namespace std;
 
-Ray rayThruPixel(Camera cam, int i, int j) {
+Ray rayThruPixel(Camera cam, float i, float j) {
 	float alpha = w / h * tanf(cam.fovy / 2) * ((j - w / 2) / (w / 2));
 	float beta = tanf(cam.fovy / 2) * (h / 2 - i) / (h / 2);
-	vec3 p1 = alpha * cam.u + beta * cam.v - cam.direction;
+	vec3 p1 = alpha * cam.u + beta * cam.v + cam.direction;
 	return Ray(cam.position, normalize(p1));
 }
 
@@ -28,7 +28,7 @@ Image Raytrace(Camera cam, Scene scene, int width, int height) {
 	Image image = Image(width, height);
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
-			Ray ray = rayThruPixel(cam, i, j);
+			Ray ray = rayThruPixel(cam, i + 0.5, j + 0.5);
 			Intersection hit = scene.findClosestIntersection(ray);
 			vec3 color = FindColor(hit);
 		}
