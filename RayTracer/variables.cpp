@@ -4,6 +4,11 @@
 // Abstract class for scene objects
 class SceneObject {
 public:
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    float shininess;
+    vec3 emission;
     virtual Intersection intersect(const Ray& ray) = 0;
 };
 

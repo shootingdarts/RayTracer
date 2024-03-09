@@ -48,7 +48,16 @@ struct Image {
     }
 };
 
+enum light {directionl, point};
+
+struct Light {
+    light type;
+    vec3 direction;
+    vec3 locaiton;
+};
+
 EXTERN int w, h;
 EXTERN int depth;
 EXTERN std::string outputFile;
 EXTERN Camera cam;
+EXTERN std::vector<Light> lights;
