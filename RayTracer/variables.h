@@ -9,14 +9,6 @@
 #define EXTERN extern 
 #endif
 
-EXTERN vec3 eyeinit;
-EXTERN vec3 center;
-EXTERN vec3 upinit;
-EXTERN float fovy;
-EXTERN int w, h;
-EXTERN int depth;
-EXTERN std::string outputFile;
-
 // Ray structure
 struct Ray {
     vec3 origin;
@@ -56,3 +48,7 @@ struct Image {
     }
 };
 
+EXTERN int w, h;
+EXTERN int depth;
+EXTERN std::string outputFile;
+EXTERN Camera cam;
