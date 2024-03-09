@@ -100,6 +100,17 @@ public:
     }
 };
 
+Intersection findClosestIntersection(const Ray& ray) {
+    Intersection closestIntersection;
+    for (auto& object : objects) {
+        Intersection intersection = object->intersect(ray);
+        if (intersection.hit && intersection.distance < closestIntersection.distance) {
+            closestIntersection = intersection;
+        }
+    }
+    return closestIntersection;
+}
+
 // Function to find the color at a hit
 vec3 findColor(const Intersection& hit) {
     vec3 I;
@@ -109,15 +120,21 @@ vec3 findColor(const Intersection& hit) {
     if (hit.hit) {
         for (int i = 0; i < lights.size(); i++) {
             Light curr_light = lights[i];
-            if (curr_light) {
-                continue;
-            }
+
             if (curr_light.type == 0) {
+                Ray dir = Ray(hit.point, -curr_light.direction);
+                if (findClosestIntersection(dir).hit == false) {
+                    continue;
+                }
                 NL = dot(hit.normal, curr_light.direction);
                 vec3 halfvec = curr_light.direction + (cam.position - hit.point);
                 NH = dot(hit.normal, halfvec);
             }
             else {
+                Ray pt = Ray(hit.point, curr_light.location - hit.point);
+                if (findClosestIntersection(pt).hit == false) {
+                    continue;
+                }
                 NL = dot(hit.normal, (curr_light.location - hit.point));
                 vec3 halfvec = (curr_light.location - hit.point) + (cam.position - hit.point);
                 NH = dot(hit.normal, halfvec);
