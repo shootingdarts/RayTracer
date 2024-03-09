@@ -1,3 +1,4 @@
+#include <glm/glm.hpp>
 #include "variables.h"
 
 // Abstract class for scene objects
@@ -31,6 +32,11 @@ public:
         // Implement Möller–Trumbore intersection algorithm
         Intersection result;
         // Calculate intersection, set result.hit, result.distance, result.point, result.normal
+        vec3 normal = cross(v2 - v0, v1 - v0);
+        normal = normalize(normal);
+        float t = (dot(v0, normal) - dot(ray.origin, normal)) / dot(ray.direction, normal);
+        vec3 p = ray.origin + t * ray.direction;
+        float gamma = 0;
         return result;
     }
 };
@@ -65,11 +71,3 @@ vec3 FindColor(const Intersection& hit) {
         //Background color
     }
 }
-
-// Function to generate a ray through a pixel
-//Ray RayThruPixel(const Camera& cam, int i, int j, int width, int height) {
-    // Calculate direction of the ray from camera through the pixel
-    // Simple perspective projection
-    // vec3 direction = /* Calculate direction based on camera parameters and pixel coordinates */;
-    // return Ray(cam.position, direction);
-//}

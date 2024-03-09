@@ -1,6 +1,7 @@
 #include <string>
 #include <vector>
 #include <glm/glm.hpp>
+#include "Transform.h"
 
 #ifdef MAINPROGRAM 
 #define EXTERN 
@@ -8,13 +9,13 @@
 #define EXTERN extern 
 #endif
 
-EXTERN glm::vec3 eyeinit;
-EXTERN glm::vec3 center;
-EXTERN glm::vec3 upinit;
+EXTERN vec3 eyeinit;
+EXTERN vec3 center;
+EXTERN vec3 upinit;
 EXTERN float fovy;
 EXTERN int w, h;
 EXTERN int depth;
-EXTERN string outputFile;
+EXTERN std::string outputFile;
 
 // Ray structure
 struct Ray {
@@ -38,7 +39,9 @@ struct Intersection {
 struct Camera {
     vec3 position;
     vec3 direction;
-    float fov;
+    vec3 u;
+    vec3 v;
+    float fovy;
 };
 
 // Image structure
