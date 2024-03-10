@@ -8,8 +8,8 @@
 
 using namespace std;
 #include "readfile.h"
-#include "variables.h"
 #include "Transform.h"
+#include "variables.h"
 
 bool readvals(stringstream& s, const int numvals, float* values)
 {
@@ -43,9 +43,9 @@ void readfile(const char* filename)
                         vec3 center = vec3(values[3], values[4], values[5]);
                         vec3 up = vec3(values[6], values[7], values[8]);
                         cam.position = vec3(values[0], values[1], values[2]);
-                        cam.direction = normalize(cam.position - center);
-                        cam.u = normalize(cross(up, cam.direction));
-                        cam.v = cross(cam.direction, cam.u);
+                        cam.w = normalize(cam.position - center);
+                        cam.u = normalize(cross(up, cam.w));
+                        cam.v = cross(cam.w, cam.u);
                         cam.fovy = values[9] / 180 * pi;
                     }
                 }
@@ -66,7 +66,7 @@ void readfile(const char* filename)
                     validinput = readvals(s, 6, values);
                     Light pt;
                     pt.attenuation = currAttenuation;
-                    pt.direction = vec3(values[0], values[1], values[2]);
+                    pt.location = vec3(values[0], values[1], values[2]);
                     pt.type = point;
                     pt.color = vec3(values[3], values[4], values[5]);
                     lights.push_back(pt);
@@ -101,23 +101,23 @@ void readfile(const char* filename)
                 }
                 else if (cmd == "sphere") {
                     validinput = readvals(s, 4, values);
-                    Sphere sph = Sphere(vec3(values[0], values[1], values[2]), values[3]);
-                    sph.ambient = currAmbient;
-                    sph.diffuse = currDiffuse;
-                    sph.emission = currEmission;
-                    sph.shininess = currShininess;
-                    sph.specular = currSpecular;
-                    currScene.push_back(&sph);
+                    Sphere* sph = new Sphere(vec3(values[0], values[1], values[2]), values[3]);
+                    sph->ambient = currAmbient;
+                    sph->diffuse = currDiffuse;
+                    sph->emission = currEmission;
+                    sph->shininess = currShininess;
+                    sph->specular = currSpecular;
+                    currScene.push_back(sph);
                 }
                 else if (cmd == "tri") {
                     validinput = readvals(s, 3, values);
-                    Triangle tri = Triangle(vertices[values[0]], vertices[values[1]], vertices[values[2]]);
-                    tri.ambient = currAmbient;
-                    tri.diffuse = currDiffuse;
-                    tri.emission = currEmission;
-                    tri.shininess = currShininess;
-                    tri.specular = currSpecular;
-                    currScene.push_back(&tri);
+                    Triangle* tri = new Triangle(vertices[values[0]], vertices[values[1]], vertices[values[2]]);
+                    tri->ambient = currAmbient;
+                    tri->diffuse = currDiffuse;
+                    tri->emission = currEmission;
+                    tri->shininess = currShininess;
+                    tri->specular = currSpecular;
+                    currScene.insert(currScene.begin(), tri);
                 }
                 else if (cmd == "size") {
                     validinput = readvals(s, 2, values);
@@ -130,10 +130,6 @@ void readfile(const char* filename)
                 }
                 else if (cmd == "output") {
                     s >> outputFile;
-                }
-                else if (cmd == "sphere") {
-                    validinput = readvals(s, 4, values);
-
                 }
                 else {
                     cerr << "Unknown Command: " << cmd << " Skipping \n";

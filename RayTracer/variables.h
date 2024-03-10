@@ -1,3 +1,4 @@
+#pragma once
 #include <string>
 #include <vector>
 #include <glm/glm.hpp>
@@ -8,6 +9,33 @@
 #else 
 #define EXTERN extern 
 #endif
+
+// Structure to store intersection information
+struct Intersection {
+    bool hit;
+    float distance;
+    vec3 point;
+    vec3 normal;
+
+    Intersection() : hit(false), distance(std::numeric_limits<float>::max()), point(vec3(0.0)),  normal(vec3(0.0)) {}
+};
+
+// Ray structure
+struct Ray {
+    vec3 origin;
+    vec3 direction;
+
+    Ray(const vec3& origin, const vec3& direction) : origin(origin), direction(direction) {}
+};
+
+// Camera structure
+struct Camera {
+    vec3 position;
+    vec3 u;
+    vec3 v;
+    vec3 w;
+    float fovy;
+};
 
 // abstract class
 class SceneObject {
@@ -35,34 +63,6 @@ public:
     Intersection intersect(const Ray& ray) override;
 };
 
-// Ray structure
-struct Ray {
-    vec3 origin;
-    vec3 direction;
-
-    Ray(const vec3& origin, const vec3& direction) : origin(origin), direction(direction) {}
-};
-
-// Structure to store intersection information
-struct Intersection {
-    bool hit;
-    float distance;
-    SceneObject *obj_light;
-    vec3 point;
-    vec3 normal;
-
-    Intersection() : hit(false), distance(std::numeric_limits<float>::max()) {}
-};
-
-// Camera structure
-struct Camera {
-    vec3 position;
-    vec3 direction;
-    vec3 u;
-    vec3 v;
-    float fovy;
-};
-
 // Image structure
 struct Image {
     int width, height;
@@ -85,23 +85,30 @@ struct Light {
     vec3 color;
 };
 
+struct InterObject {
+    Intersection intsect;
+    SceneObject* obj_light;
+    InterObject(Intersection intx, SceneObject* obj) : intsect(intx), obj_light(obj) {}
+};
+
 Intersection findClosestIntersection(const Ray& ray);
 vec3 findColor(const Intersection& hit);
 
 EXTERN int w, h;
 EXTERN int depth;
 EXTERN int maxvertex;
+EXTERN float kEpsilon;
 
 EXTERN std::string outputFile;
 EXTERN Camera cam;
 EXTERN std::vector<SceneObject*> currScene;
 
-EXTERN vec3 currAmbient = vec3(0.2, 0.2, 0.2);
-EXTERN vec3 currDiffuse = vec3(0, 0, 0);
-EXTERN vec3 currSpecular = vec3(0, 0, 0);
-EXTERN float currShininess = 0;
-EXTERN vec3 currEmission = vec3(0, 0, 0);
-EXTERN vec3 currAttenuation = vec3(1, 0, 0);
+EXTERN vec3 currAmbient;
+EXTERN vec3 currDiffuse;
+EXTERN vec3 currSpecular;
+EXTERN float currShininess;
+EXTERN vec3 currEmission;
+EXTERN vec3 currAttenuation;
 
 EXTERN std::vector<Light> lights;
 EXTERN std::vector<vec3> vertices;
