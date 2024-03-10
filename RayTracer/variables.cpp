@@ -14,8 +14,8 @@ Intersection Sphere::intersect(const Ray& ray) {
     if (delta < 0) {
         return result;
     }
-    float t1 = -b + sqrt(delta) / 2 * a;
-    float t2 = -b - sqrt(delta) / 2 * a;
+    float t1 = -b + sqrt(delta) / (2 * a);
+    float t2 = -b - sqrt(delta) / (2 * a);
 
     if (t1 > 0 && t2 > 0) {
         result.hit = true;
@@ -65,8 +65,6 @@ Intersection Triangle::intersect(const Ray& ray){
     return result;
 }
 
-// Scene class containing all scene objects
-
 Intersection findClosestIntersection(const Ray& ray) {
     Intersection closestIntersection;
     for (auto& object : currScene) {
@@ -80,7 +78,7 @@ Intersection findClosestIntersection(const Ray& ray) {
 
 // Function to find the color at a hit
 vec3 findColor(const Intersection& hit) {
-    vec3 I;
+    vec3 I = vec3(0, 0, 0);
     float NL;
     float NH;
 
@@ -103,6 +101,7 @@ vec3 findColor(const Intersection& hit) {
                 }
                 NL = dot(hit.normal, curr_light.direction);
                 vec3 halfvec = curr_light.direction + (cam.position - hit.point);
+                halfvec = glm::normalize(halfvec);
                 NH = dot(hit.normal, halfvec);
             }
             else {
@@ -110,7 +109,7 @@ vec3 findColor(const Intersection& hit) {
                 Ray pt = Ray(hit.point + direction * float(pow(10, -6)), direction);
                 for (auto& object : currScene) {
                     Intersection intersection = object->intersect(pt);
-                    if (intersection.hit && intersection.distance < direction.length()) {
+                    if (intersection.hit && intersection.distance < glm::length(direction)) {
                         blocked = true;
                         break;
                     }
@@ -120,14 +119,14 @@ vec3 findColor(const Intersection& hit) {
                 }
                 NL = dot(hit.normal, (curr_light.location - hit.point));
                 vec3 halfvec = (curr_light.location - hit.point) + (cam.position - hit.point);
+                halfvec = glm::normalize(halfvec);
                 NH = dot(hit.normal, halfvec);
             }
-            NL = 0;
             vec3 eachLight = hit.obj_light->diffuse * std::max(NL, float(0.0)) + hit.obj_light->specular * pow(std::max(NH, float(0.0)), hit.obj_light->shininess);
             eachLight = (curr_light.color / curr_light.attenuation) * eachLight;
             I = I + eachLight;
         }
-        I = hit.obj_light->ambient + hit.obj_light->emission;
+        I = I + hit.obj_light->ambient + hit.obj_light->emission;
     }
     else {
         I = vec3(0, 0, 0);
