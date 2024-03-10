@@ -44,6 +44,25 @@ BYTE* raytrace(Camera cam, int width, int height, BYTE* pixels) {
 	return image;
 }
 
+void resetScene() {
+	kEpsilon = pow(10, -6);
+	currAmbient = vec3(0.2, 0.2, 0.2);
+	currDiffuse = vec3(0);
+	currSpecular = vec3(0);
+	currShininess = 1;
+	currEmission = vec3(0);
+	currAttenuation = vec3(1, 0, 0);
+	for (auto camera : cameras) {
+		delete camera;
+	}
+	for (auto object : currScene) {
+		delete object;
+	}
+	cameras.clear();
+	currScene.clear();
+	lights.clear();
+	vertices.clear();
+}
 
 int main(int argc, char* argv[]) {
 	cout << "hello" << endl;
@@ -52,40 +71,25 @@ int main(int argc, char* argv[]) {
 		exit(-1);
 	}
 	// set variables to default
-	kEpsilon = pow(10, -6);
-	currAmbient = vec3(0.2, 0.2, 0.2);
-	currDiffuse = vec3(0);
-	currSpecular = vec3(0);
-	currShininess = 1;
-	currEmission = vec3(0);
-	currAttenuation = vec3(1, 0, 0);
-	// parse in commands
-	readfile(argv[1]);
-	/*
-	for (auto object : currScene) {
-		SceneObject* tri = object;
-		cout << object->ambient.x << endl;
-	}
-	for (auto vertex : vertices) {
-		cout << vertex.x << vertex.y << vertex.z << endl;
-	}
-	for (auto light : lights) {
-		cout << light.type << endl;
-	}
-	*/
+	resetScene();
 	FreeImage_Initialise();
-	int pix = w * h;
-	BYTE* pixels = new BYTE[3*pix];
-	cout << to_string(cameras.size()) + " total scenes loaded." << endl;
-	for (int i = 1; i <= cameras.size(); i++) {
-		cout << "Rendering scene " + to_string(i)+ " ..." << endl;
-		pixels = raytrace(*cameras[i - 1], w, h, pixels);
-		FIBITMAP* img = FreeImage_ConvertFromRawBits(pixels, w, h, w * 3, 24, 0xFF0000, 0x00FF00, 0x0000FF, true);
-		outputFile = "Scene_" + to_string(i) + ".png";
-		FreeImage_Save(FIF_PNG, img, outputFile.c_str(), 0);
-		cout << "Successfully saved Scene" + to_string(i) + ".png" << endl;
+	// parse in commands
+	for (int j = 1; j < argc; j++) {
+		readfile(argv[j]);
+		int pix = w * h;
+		BYTE* pixels = new BYTE[3 * pix];
+		cout << to_string(cameras.size()) + " total cameras loaded." << endl;
+		for (int i = 1; i <= cameras.size(); i++) {
+			cout << "Rendering image " + to_string(i) + " ..." << endl;
+			pixels = raytrace(*cameras[i - 1], w, h, pixels);
+			FIBITMAP* img = FreeImage_ConvertFromRawBits(pixels, w, h, w * 3, 24, 0xFF0000, 0x00FF00, 0x0000FF, true);
+			outputFile = "images/Scene" + to_string(j) + "Camera" + to_string(i) + ".png";
+			FreeImage_Save(FIF_PNG, img, outputFile.c_str(), 0);
+			cout << "Successfully saved " + outputFile << endl;
+		}
+		resetScene();
+		delete pixels;
 	}
 	FreeImage_DeInitialise();
-	delete pixels;
 	return 0;
 }

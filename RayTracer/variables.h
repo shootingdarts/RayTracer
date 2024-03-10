@@ -45,6 +45,10 @@ public:
     vec3 specular;
     float shininess;
     vec3 emission;
+    mat4 m;
+    mat4 mInverse;
+    bool hasTransf;
+
     virtual Intersection intersect(const Ray& ray) = 0;
 };
 

@@ -15,35 +15,50 @@ Intersection Sphere::intersect(const Ray& ray) {
         result.hit = false;
         return result;
     }
-    float t1 = -b + sqrt(delta) / (2 * a);
-    float t2 = -b - sqrt(delta) / (2 * a);
+    float t1 = (-b + sqrt(delta)) / (2 * a);
+    float t2 = (-b - sqrt(delta)) / (2 * a);
+    vec3 p = vec3(0);
+    float t = 0.0;
+    vec3 n = vec3(0);
 
     if (t1 > 0 && t2 > 0) {
         result.hit = true;
         if (t1 <= t2) {
-            result.distance = t1;
-            result.point = ray.direction * t1 + ray.origin;
-            result.normal = normalize(result.point - center);
+            t = t1;
+            p = ray.direction * t1 + ray.origin;
+            n = normalize(result.point - center);
         }
         else {
-            result.distance = t2;
-            result.point = ray.direction * t2 + ray.origin;
-            result.normal = normalize(result.point - center);
+            t = t2;
+            p = ray.direction * t2 + ray.origin;
+            n = normalize(result.point - center);
         }
     }
     else if (t1 > 0) {
-        result.distance = t1;
-        result.point = ray.direction * t1 + ray.origin;
-        result.normal = normalize(result.point - center);
+        t = t1;
+        p = ray.direction * t1 + ray.origin;
+        n = normalize(result.point - center);
     }
     else if (t2 > 0) {
-        result.distance = t2;
-        result.point = ray.direction * t2 + ray.origin;
-        result.normal = normalize(result.point - center);
+        t = t2;
+        p = ray.direction * t2 + ray.origin;
+        n = normalize(result.point - center);
     }
-    if (result.hit) {
-        //cout << "here!" << endl;
+    else {
+        return result;
     }
+    if (this->hasTransf) {
+        result.point = vec3(this->m * vec4(p, 1));
+        result.normal = vec3(this->mInverse * vec4(n, 0));
+        vec3 oldOrigin = vec3(this->m * vec4(ray.origin, 1));
+        result.distance = length(result.point - oldOrigin);
+    }
+    else {
+        result.distance = t;
+        result.normal = n;
+        result.point = p;
+    }
+    result.hit = true;
     return result;
 }
 
@@ -115,10 +130,20 @@ Intersection Triangle::intersect(const Ray& ray) {
         result.hit = false;
         return result;
     }
-    result.distance = t;
     result.hit = true;
-    result.normal = normalize(cross(v0v1, v0v2));
-    result.point = ray.origin + t * ray.direction;;
+    vec3 p = ray.origin + t * ray.direction;
+    vec3 normal = normalize(cross(v0v1, v0v2));
+    if (this->hasTransf) {
+        result.point = vec3(this->m * vec4(p, 1));
+        result.normal = vec3(this->mInverse * vec4(normal, 0));
+        vec3 oldOrigin = vec3(this->m * vec4(ray.origin, 1));
+        result.distance = length(result.point - oldOrigin);
+    }
+    else {
+        result.distance = t;
+        result.normal = normal;
+        result.point = p;
+    }
     return result;
 }
 
@@ -137,8 +162,16 @@ Intersection findClosestIntersection(const Ray& ray) {
 InterObject findBlockingObject(const Ray& ray) {
     Intersection closestIntersection;
     SceneObject* blocking = nullptr;
+    Ray transfRay = ray;
     for (auto& object : currScene) {
-        Intersection intersection = object->intersect(ray);
+        if (object->hasTransf) {
+            object->mInverse = inverse(object->m);
+            vec4 origin = object->mInverse * vec4(ray.origin, 1);
+            vec4 newDirection = object->mInverse * vec4(ray.direction, 0);
+            vec3 newOrigin = vec3(origin) / origin.w;
+            transfRay = Ray(newOrigin, vec3(newDirection));
+        }
+        Intersection intersection = object->intersect(transfRay);
         if (intersection.hit && intersection.distance < closestIntersection.distance) {
             closestIntersection = intersection;
             blocking = object;

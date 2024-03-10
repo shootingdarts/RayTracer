@@ -11,6 +11,20 @@ using namespace std;
 #include "Transform.h"
 #include "variables.h"
 
+void matransform(stack<mat4>& transfstack, vec3& values)
+{
+    mat4 transform = transfstack.top();
+    vec4 valvec = vec4(values[0], values[1], values[2], 1);
+    vec4 newval = transform * valvec;
+    for (int i = 0; i < 3; i++) values[i] = newval[i] / newval[3];
+}
+
+void rightmultiply(const mat4& M, stack<mat4>& transfstack)
+{
+    mat4& T = transfstack.top();
+    T = T * M;
+}
+
 bool readvals(stringstream& s, const int numvals, float* values)
 {
     for (int i = 0; i < numvals; i++) {
@@ -29,6 +43,11 @@ void readfile(const char* filename)
     ifstream in;
     in.open(filename);
     if (in.is_open()) {
+
+        stack <mat4> transfstack;
+        transfstack.push(mat4(1.0));
+        bool hasTransf = false;
+
         getline(in, str);
         while (in) {
             if ((str.find_first_not_of(" \t\r\n") != string::npos) && (str[0] != '#')) {
@@ -101,7 +120,15 @@ void readfile(const char* filename)
                 }
                 else if (cmd == "sphere") {
                     validinput = readvals(s, 4, values);
-                    Sphere* sph = new Sphere(vec3(values[0], values[1], values[2]), values[3]);
+                    vec3 center = vec3(values[0], values[1], values[2]);
+                    Sphere* sph = new Sphere(center, values[3]);
+                    if (hasTransf) { 
+                        sph->hasTransf = true;
+                        sph->m = transfstack.top();
+                    }
+                    else {
+                        sph->hasTransf = false;
+                    }
                     sph->ambient = currAmbient;
                     sph->diffuse = currDiffuse;
                     sph->emission = currEmission;
@@ -111,7 +138,17 @@ void readfile(const char* filename)
                 }
                 else if (cmd == "tri") {
                     validinput = readvals(s, 3, values);
-                    Triangle* tri = new Triangle(vertices[values[0]], vertices[values[1]], vertices[values[2]]);
+                    vec3 v0 = vertices[values[0]];
+                    vec3 v1 = vertices[values[1]];
+                    vec3 v2 = vertices[values[2]];
+                    Triangle* tri = new Triangle(v0, v1, v2);
+                    if (hasTransf) {
+                        tri->hasTransf = true;
+                        tri->m = transfstack.top();
+                    }
+                    else {
+                        tri->hasTransf = false;
+                    }
                     tri->ambient = currAmbient;
                     tri->diffuse = currDiffuse;
                     tri->emission = currEmission;
@@ -130,6 +167,39 @@ void readfile(const char* filename)
                 }
                 else if (cmd == "output") {
                     s >> outputFile;
+                }
+                else if (cmd == "translate") {
+                    validinput = readvals(s, 3, values);
+                    if (validinput) {
+                        rightmultiply(Transform::translate(values[0], values[1], values[2]), transfstack);
+                    }
+                }
+                else if (cmd == "scale") {
+                    validinput = readvals(s, 3, values);
+                    if (validinput) {
+                        rightmultiply(Transform::scale(values[0], values[1], values[2]), transfstack);
+                    }
+                }
+                else if (cmd == "rotate") {
+                    validinput = readvals(s, 4, values);
+                    if (validinput) {
+                        rightmultiply(mat4(Transform::rotate(values[3], vec3(values[0], values[1], values[2]))), transfstack);
+                    }
+                }
+
+                // I include the basic push/pop code for matrix stacks
+                else if (cmd == "pushTransform") {
+                    transfstack.push(transfstack.top());
+                    hasTransf = true;
+                }
+                else if (cmd == "popTransform") {
+                    if (transfstack.size() <= 1) {
+                        cerr << "Stack has no elements.  Cannot Pop\n";
+                    }
+                    else {
+                        transfstack.pop();
+                        hasTransf = false;
+                    }
                 }
                 else {
                     cerr << "Unknown Command: " << cmd << " Skipping \n";
