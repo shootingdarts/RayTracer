@@ -102,7 +102,7 @@ void readfile(const char* filename)
                     validinput = readvals(s, 3, values);
                     currSpecular = vec3(values[0], values[1], values[2]);
                 }
-                else if (cmd == "shiniess") {
+                else if (cmd == "shininess") {
                     validinput = readvals(s, 1, values);
                     currShininess = values[0];
                 }
@@ -125,6 +125,7 @@ void readfile(const char* filename)
                     if (hasTransf) { 
                         sph->hasTransf = true;
                         sph->m = transfstack.top();
+                        sph->mInverse = inverse(sph->m);
                     }
                     else {
                         sph->hasTransf = false;
@@ -145,6 +146,7 @@ void readfile(const char* filename)
                     if (hasTransf) {
                         tri->hasTransf = true;
                         tri->m = transfstack.top();
+                        tri->mInverse = inverse(tri->m);
                     }
                     else {
                         tri->hasTransf = false;
@@ -163,7 +165,7 @@ void readfile(const char* filename)
                 }
                 else if (cmd == "maxdepth") {
                     validinput = readvals(s, 1, values);
-                    depth = values[0];
+                    maxDepth = values[0];
                 }
                 else if (cmd == "output") {
                     s >> outputFile;

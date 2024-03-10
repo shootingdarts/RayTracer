@@ -25,35 +25,37 @@ Intersection Sphere::intersect(const Ray& ray) {
         result.hit = true;
         if (t1 <= t2) {
             t = t1;
-            p = ray.direction * t1 + ray.origin;
-            n = normalize(result.point - center);
+            p = ray.direction * t + ray.origin;
         }
         else {
             t = t2;
-            p = ray.direction * t2 + ray.origin;
-            n = normalize(result.point - center);
+            p = ray.direction * t + ray.origin;
         }
     }
     else if (t1 > 0) {
         t = t1;
-        p = ray.direction * t1 + ray.origin;
-        n = normalize(result.point - center);
+        p = ray.direction * t + ray.origin;
     }
     else if (t2 > 0) {
         t = t2;
-        p = ray.direction * t2 + ray.origin;
-        n = normalize(result.point - center);
+        p = ray.direction * t + ray.origin;
     }
     else {
         return result;
     }
     if (this->hasTransf) {
-        result.point = vec3(this->m * vec4(p, 1));
-        result.normal = vec3(this->mInverse * vec4(n, 0));
-        vec3 oldOrigin = vec3(this->m * vec4(ray.origin, 1));
-        result.distance = length(result.point - oldOrigin);
+        vec4 homPoint = this->m * vec4(p, 1);
+        result.point = vec3(homPoint) / homPoint.w;
+        //n = normalize(result.point - center);
+        n = normalize(p - center);
+        mat3 q = transpose(this->mInverse);
+        result.normal = normalize(q * n);
+        vec4 homOrigin = this->m * vec4(ray.origin, 1);
+        vec3 origin = vec3(homOrigin) / homOrigin.w;
+        result.distance = length(result.point - origin);
     }
     else {
+        n = normalize(p - center);
         result.distance = t;
         result.normal = n;
         result.point = p;
@@ -100,6 +102,7 @@ Intersection Triangle::intersect(const Ray& ray){
 
 // https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/moller-trumbore-ray-triangle-intersection.html
 Intersection Triangle::intersect(const Ray& ray) {
+    // Implement Möller–Trumbore intersection algorithm
     Intersection result;
     vec3 v0v1 = v1 - v0;
     vec3 v0v2 = v2 - v0;
@@ -132,31 +135,22 @@ Intersection Triangle::intersect(const Ray& ray) {
     }
     result.hit = true;
     vec3 p = ray.origin + t * ray.direction;
-    vec3 normal = normalize(cross(v0v1, v0v2));
+    vec3 n = normalize(cross(v0v1, v0v2));
     if (this->hasTransf) {
-        result.point = vec3(this->m * vec4(p, 1));
-        result.normal = vec3(this->mInverse * vec4(normal, 0));
-        vec3 oldOrigin = vec3(this->m * vec4(ray.origin, 1));
-        result.distance = length(result.point - oldOrigin);
+        vec4 homPoint = this->m * vec4(p, 1);
+        result.point = vec3(homPoint) / homPoint.w;
+        mat3 q = transpose(this->mInverse);
+        result.normal = normalize(q * n);
+        vec4 homOrigin = this->m * vec4(ray.origin, 1);
+        vec3 origin = vec3(homOrigin) / homOrigin.w;
+        result.distance = length(result.point - origin);
     }
     else {
         result.distance = t;
-        result.normal = normal;
+        result.normal = n;
         result.point = p;
     }
     return result;
-}
-
-
-Intersection findClosestIntersection(const Ray& ray) {
-    Intersection closestIntersection;
-    for (auto& object : currScene) {
-        Intersection intersection = object->intersect(ray);
-        if (intersection.hit && intersection.distance < closestIntersection.distance) {
-            closestIntersection = intersection;
-        }
-    }
-    return closestIntersection;
 }
 
 InterObject findBlockingObject(const Ray& ray) {
@@ -165,17 +159,17 @@ InterObject findBlockingObject(const Ray& ray) {
     Ray transfRay = ray;
     for (auto& object : currScene) {
         if (object->hasTransf) {
-            object->mInverse = inverse(object->m);
-            vec4 origin = object->mInverse * vec4(ray.origin, 1);
-            vec4 newDirection = object->mInverse * vec4(ray.direction, 0);
-            vec3 newOrigin = vec3(origin) / origin.w;
-            transfRay = Ray(newOrigin, vec3(newDirection));
+            vec4 homOrigin = object->mInverse * vec4(ray.origin, 1);
+            vec3 newDirection = object->mInverse * vec4(ray.direction, 0);
+            vec3 origin = vec3(homOrigin) / homOrigin.w;
+            transfRay = Ray(origin, normalize(newDirection));
         }
         Intersection intersection = object->intersect(transfRay);
         if (intersection.hit && intersection.distance < closestIntersection.distance) {
             closestIntersection = intersection;
             blocking = object;
         }
+        transfRay = ray;
     }
     return InterObject(closestIntersection, blocking);
 }
@@ -198,12 +192,21 @@ vec3 findColor(const InterObject& inObj, Camera cam) {
             if (curr_light.type == directional) {
                 vec3 direction = normalize(curr_light.direction);
                 Ray dir = Ray(hit.point + direction * kEpsilon, direction);
+                Ray transfDir = dir;
                 for (auto& object : currScene) {
-                    Intersection intersection = object->intersect(dir);
+                    if (object->hasTransf) {
+                        object->mInverse = inverse(object->m);
+                        vec4 origin = object->mInverse * vec4(dir.origin, 1);
+                        vec4 newDirection = object->mInverse * vec4(dir.direction, 0);
+                        vec3 newOrigin = vec3(origin) / origin.w;
+                        transfDir = Ray(newOrigin, normalize(vec3(newDirection)));
+                    }
+                    Intersection intersection = object->intersect(transfDir);
                     if (intersection.hit) {
                         blocked = true;
                         break;
                     }
+                    transfDir = dir;
                 }
                 if (blocked) {
                     continue;
@@ -219,12 +222,21 @@ vec3 findColor(const InterObject& inObj, Camera cam) {
                 float dist = length(direction);
                 direction = normalize(direction);
                 Ray pt = Ray(hit.point + direction * kEpsilon, direction);
+                Ray transfPt = pt;
                 for (auto& object : currScene) {
-                    Intersection intersection = object->intersect(pt);
+                    if (object->hasTransf) {
+                        object->mInverse = inverse(object->m);
+                        vec4 origin = object->mInverse * vec4(pt.origin, 1);
+                        vec4 newDirection = object->mInverse * vec4(pt.direction, 0);
+                        vec3 newOrigin = vec3(origin) / origin.w;
+                        transfPt = Ray(newOrigin, normalize(vec3(newDirection)));
+                    }
+                    Intersection intersection = object->intersect(transfPt);
                     if (intersection.hit && intersection.distance < dist) {
                         blocked = true;
                         break;
                     }
+                    transfPt = pt;
                 }
                 if (blocked) {
                     continue;

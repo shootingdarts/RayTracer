@@ -23,14 +23,33 @@ Ray rayThruPixel(Camera cam, float i, float j) {
 	return Ray(cam.position, normalize(p1));
 }
 
+vec3 recursiveFindColor(const Ray& ray, Camera cam, int currDepth) {
+	InterObject inObj = findBlockingObject(ray);
+	vec3 I = vec3(0.0);
+	if (currDepth == maxDepth) {
+		return I;
+	}
+	if (!inObj.intsect.hit) {
+		return I;
+	}
+	vec3 s = inObj.obj_light->specular;
+	if (s == vec3(0.0)) {
+		return findColor(inObj, cam);
+	}
+	vec3 n = inObj.intsect.normal;
+	vec3 d = ray.direction;
+	vec3 r = -2 * dot(d, n) * n + d;
+	I += findColor(inObj, cam) + s * recursiveFindColor(Ray(inObj.intsect.point, normalize(r)), cam, currDepth + 1);
+	return I;
+}
+
 BYTE* raytrace(Camera cam, int width, int height, BYTE* pixels) {
 	BYTE* image = pixels;
 	int stage = 1;
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
 			Ray ray = rayThruPixel(cam, i + 0.5, j + 0.5);
-			InterObject hit = findBlockingObject(ray);
-			vec3 color = findColor(hit, cam);
+			vec3 color = recursiveFindColor(ray, cam, 0);
 			int pixelNumber = i * width + j;
 			image[pixelNumber * 3] = 255 * color.z;
 			image[pixelNumber * 3 + 1] = 255 * color.y;
@@ -45,13 +64,14 @@ BYTE* raytrace(Camera cam, int width, int height, BYTE* pixels) {
 }
 
 void resetScene() {
-	kEpsilon = pow(10, -6);
+	kEpsilon = pow(10, -3);
 	currAmbient = vec3(0.2, 0.2, 0.2);
 	currDiffuse = vec3(0);
 	currSpecular = vec3(0);
 	currShininess = 1;
 	currEmission = vec3(0);
 	currAttenuation = vec3(1, 0, 0);
+	maxDepth = 10;
 	for (auto camera : cameras) {
 		delete camera;
 	}
@@ -80,12 +100,21 @@ int main(int argc, char* argv[]) {
 		BYTE* pixels = new BYTE[3 * pix];
 		cout << to_string(cameras.size()) + " total cameras loaded." << endl;
 		for (int i = 1; i <= cameras.size(); i++) {
-			cout << "Rendering image " + to_string(i) + " ..." << endl;
+			cout << "Rendering..." << endl;
 			pixels = raytrace(*cameras[i - 1], w, h, pixels);
 			FIBITMAP* img = FreeImage_ConvertFromRawBits(pixels, w, h, w * 3, 24, 0xFF0000, 0x00FF00, 0x0000FF, true);
-			outputFile = "images/Scene" + to_string(j) + "Camera" + to_string(i) + ".png";
+			string testName = argv[j];
+			string withOut = "";
+			for (auto character : testName) {
+				if (character == '.') {
+					break;
+				}
+				withOut.push_back(character);
+			}
+			outputFile = "images/" + outputFile;
+			//outputFile = "images/" + withOut + "-Image" + to_string(i) + ".png";
 			FreeImage_Save(FIF_PNG, img, outputFile.c_str(), 0);
-			cout << "Successfully saved " + outputFile << endl;
+			cout << "Successfully saved " + withOut + "-Image" + to_string(i) + ".png" << endl;
 		}
 		resetScene();
 		delete pixels;

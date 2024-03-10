@@ -96,10 +96,10 @@ struct InterObject {
 };
 
 Intersection findClosestIntersection(const Ray& ray);
-vec3 findColor(const Intersection& hit);
+vec3 findColor(const InterObject& inObj, Camera cam);
 
 EXTERN int w, h;
-EXTERN int depth;
+EXTERN int maxDepth;
 EXTERN int maxvertex;
 EXTERN float kEpsilon;
 
