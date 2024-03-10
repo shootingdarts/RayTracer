@@ -135,7 +135,6 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="readfile.cpp" />
     <ClCompile Include="Transform.cpp" />
-    <ClCompile Include="variables.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FreeImage.h" />

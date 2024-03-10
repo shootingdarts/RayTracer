@@ -23,16 +23,16 @@ public:
 class Triangle : public SceneObject {
     vec3 v0, v1, v2;
 public:
-    Triangle(const vec3& v0, const vec3& v1, const vec3& v2);
-    Intersection intersect(const Ray& ray);
+    Triangle(const vec3& v0, const vec3& v1, const vec3& v2) : v0(v0), v1(v1), v2(v2) {};
+    Intersection intersect(const Ray& ray) override;
 };
 
 class Sphere : public SceneObject {
     vec3 center;
     float radius;
 public:
-    Sphere(const vec3& center, float radius);
-    Intersection intersect(const Ray& ray);
+    Sphere(const vec3& center, float radius) : center(center), radius(radius) {};
+    Intersection intersect(const Ray& ray) override;
 };
 
 // Ray structure
