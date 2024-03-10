@@ -12,6 +12,7 @@ Intersection Sphere::intersect(const Ray& ray) {
 
     float delta = b * b - 4 * a * c;
     if (delta < 0) {
+        result.hit = false;
         return result;
     }
     float t1 = -b + sqrt(delta) / (2 * a);
@@ -22,23 +23,26 @@ Intersection Sphere::intersect(const Ray& ray) {
         if (t1 <= t2) {
             result.distance = t1;
             result.point = ray.direction * t1 + ray.origin;
-            result.normal = result.point - center;
+            result.normal = normalize(result.point - center);
         }
         else {
             result.distance = t2;
             result.point = ray.direction * t2 + ray.origin;
-            result.normal = result.point - center;
+            result.normal = normalize(result.point - center);
         }
     }
     else if (t1 > 0) {
         result.distance = t1;
         result.point = ray.direction * t1 + ray.origin;
-        result.normal = result.point - center;
+        result.normal = normalize(result.point - center);
     }
     else if (t2 > 0) {
         result.distance = t2;
         result.point = ray.direction * t2 + ray.origin;
-        result.normal = result.point - center;
+        result.normal = normalize(result.point - center);
+    }
+    if (result.hit) {
+        //cout << "here!" << endl;
     }
     return result;
 }
@@ -107,10 +111,13 @@ Intersection Triangle::intersect(const Ray& ray) {
     }
 
     float t = dot(v0v2, qvec) * invDet;
-
+    if (t < 0) {
+        result.hit = false;
+        return result;
+    }
     result.distance = t;
     result.hit = true;
-    result.normal = normalize(cross(v0v2, v0v1));
+    result.normal = normalize(cross(v0v1, v0v2));
     result.point = ray.origin + t * ray.direction;;
     return result;
 }
@@ -130,29 +137,18 @@ Intersection findClosestIntersection(const Ray& ray) {
 InterObject findBlockingObject(const Ray& ray) {
     Intersection closestIntersection;
     SceneObject* blocking = nullptr;
-    bool hitt = false;
-    int i = 1;
     for (auto& object : currScene) {
         Intersection intersection = object->intersect(ray);
-        /*
-        if (intersection.hit && i == 1) {
-            cout << "Triangle 1" << endl;
-        }
-        else if (intersection.hit && i == 2) {
-            cout << "Triangle 2" << endl;
-        }
-        */
         if (intersection.hit && intersection.distance < closestIntersection.distance) {
             closestIntersection = intersection;
             blocking = object;
         }
-        i++;
     }
     return InterObject(closestIntersection, blocking);
 }
 
 // Function to find the color at a hit
-vec3 findColor(const InterObject& inObj) {
+vec3 findColor(const InterObject& inObj, Camera cam) {
     vec3 I = vec3(0, 0, 0);
     float NL = 0.0;
     float NH = 0.0;
@@ -168,8 +164,7 @@ vec3 findColor(const InterObject& inObj) {
 
             if (curr_light.type == directional) {
                 vec3 direction = normalize(curr_light.direction);
-                Ray dir = Ray(hit.point + direction * float(pow(10.0, -6.0)), direction);
-                
+                Ray dir = Ray(hit.point + direction * kEpsilon, direction);
                 for (auto& object : currScene) {
                     Intersection intersection = object->intersect(dir);
                     if (intersection.hit) {
@@ -180,7 +175,6 @@ vec3 findColor(const InterObject& inObj) {
                 if (blocked) {
                     continue;
                 }
-                
                 atten = 1.0;
                 NL = dot(hit.normal, direction);
                 vec3 halfvec = direction + (cam.position - hit.point);
@@ -191,7 +185,7 @@ vec3 findColor(const InterObject& inObj) {
                 vec3 direction = curr_light.location - hit.point;
                 float dist = length(direction);
                 direction = normalize(direction);
-                Ray pt = Ray(hit.point + direction * float(pow(10.0, -6.0)), direction);
+                Ray pt = Ray(hit.point + direction * kEpsilon, direction);
                 for (auto& object : currScene) {
                     Intersection intersection = object->intersect(pt);
                     if (intersection.hit && intersection.distance < dist) {

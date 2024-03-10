@@ -100,7 +100,7 @@ EXTERN int maxvertex;
 EXTERN float kEpsilon;
 
 EXTERN std::string outputFile;
-EXTERN Camera cam;
+EXTERN std::vector<Camera*> cameras;
 EXTERN std::vector<SceneObject*> currScene;
 
 EXTERN vec3 currAmbient;

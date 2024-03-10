@@ -39,15 +39,15 @@ void readfile(const char* filename)
                 bool validinput;
                 if (cmd == "camera") {
                     validinput = readvals(s, 10, values);
-                    for (i = 0; i < 10; i++) {
-                        vec3 center = vec3(values[3], values[4], values[5]);
-                        vec3 up = vec3(values[6], values[7], values[8]);
-                        cam.position = vec3(values[0], values[1], values[2]);
-                        cam.w = normalize(cam.position - center);
-                        cam.u = normalize(cross(up, cam.w));
-                        cam.v = cross(cam.w, cam.u);
-                        cam.fovy = values[9] / 180 * pi;
-                    }
+                    Camera* cam = new Camera();
+                    vec3 center = vec3(values[3], values[4], values[5]);
+                    vec3 up = vec3(values[6], values[7], values[8]);
+                    cam->position = vec3(values[0], values[1], values[2]);
+                    cam->w = normalize(cam->position - center);
+                    cam->u = normalize(cross(up, cam->w));
+                    cam->v = cross(cam->w, cam->u);
+                    cam->fovy = values[9] / 180 * pi;
+                    cameras.push_back(cam);
                 }
                 else if (cmd == "attenuation") {
                     validinput = readvals(s, 3, values);
@@ -117,7 +117,7 @@ void readfile(const char* filename)
                     tri->emission = currEmission;
                     tri->shininess = currShininess;
                     tri->specular = currSpecular;
-                    currScene.insert(currScene.begin(), tri);
+                    currScene.push_back(tri);
                 }
                 else if (cmd == "size") {
                     validinput = readvals(s, 2, values);
