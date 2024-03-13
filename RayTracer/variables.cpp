@@ -21,7 +21,7 @@ Intersection Sphere::intersect(const Ray& ray) {
     float t = 0.0;
     vec3 n = vec3(0);
 
-    if (t1 > 0 && t2 > 0) {
+    if (t1 > (0) && t2 > (0)) {
         result.hit = true;
         if (t1 <= t2) {
             t = t1;
@@ -32,11 +32,11 @@ Intersection Sphere::intersect(const Ray& ray) {
             p = ray.direction * t + ray.origin;
         }
     }
-    else if (t1 > 0) {
+    else if (t1 > (0)) {
         t = t1;
         p = ray.direction * t + ray.origin;
     }
-    else if (t2 > 0) {
+    else if (t2 > (0)) {
         t = t2;
         p = ray.direction * t + ray.origin;
     }
@@ -46,59 +46,24 @@ Intersection Sphere::intersect(const Ray& ray) {
     if (this->hasTransf) {
         vec4 homPoint = this->m * vec4(p, 1);
         result.point = vec3(homPoint) / homPoint.w;
-        //n = normalize(result.point - center);
-        n = normalize(p - center);
         mat3 q = transpose(this->mInverse);
-        result.normal = normalize(q * n);
+        vec3 n = q * normalize(p - center);
+        result.normal = normalize(n);
         vec4 homOrigin = this->m * vec4(ray.origin, 1);
         vec3 origin = vec3(homOrigin) / homOrigin.w;
         result.distance = length(result.point - origin);
+        result.rayDir = this->m * vec4(ray.direction, 0);
     }
     else {
         n = normalize(p - center);
         result.distance = t;
         result.normal = n;
         result.point = p;
+        result.rayDir = ray.direction;
     }
     result.hit = true;
     return result;
 }
-
-/*
-Intersection Triangle::intersect(const Ray& ray){
-    // Implement Möller–Trumbore intersection algorithm
-    Intersection result;
-    // Calculate intersection, set result.hit, result.distance, result.point, result.normal
-    vec3 ba = v1 - v0;
-    vec3 ca = v2 - v0;
-    vec3 normal = cross(ba, ca);
-    normal = normalize(normal);
-    float t = (dot(v0, normal) - dot(ray.origin, normal)) / dot(ray.direction, normal);
-    vec3 p = ray.origin + t * ray.direction;
-    vec3 pa = p - v0;
-    if (length(ba) < length(ca)) {
-        vec3 temp = ca;
-        ca = ba;
-        ba = temp;
-    }
-    float gamma = (pa.x * ba.y / ba.x - pa.y) / (ba.y * ca.x / ba.x - ca.y);
-    float beta = (pa.y - gamma * ca.y) / ba.y;
-
-    float gamma = (pa.y - (ba.y * pa.x / ba.x)) / (ca.y - (ca.x * ba.y / ba.x));
-    float beta = (pa.y - gamma * ca.y) / ba.y;
-
-    result.hit = 0 < beta && beta < 1 && 0 < gamma && gamma < 1 && beta + gamma <= 1;
-    if (result.hit) {
-        result.distance = t;
-        result.point = p;
-        result.normal = normal;
-
-        //std::cout << normal.x << " " << normal.y << " " << normal.z << endl;
-    }
-    return result;
-}
-
-*/
 
 // https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/moller-trumbore-ray-triangle-intersection.html
 Intersection Triangle::intersect(const Ray& ray) {
@@ -109,31 +74,31 @@ Intersection Triangle::intersect(const Ray& ray) {
     vec3 pvec = cross(ray.direction, v0v2);
     float det = dot(v0v1, pvec);
     // ray and triangle are parallel if det is close to 0
+    /*
+    *
     if (fabs(det) < kEpsilon) {
         result.hit = false;
         return result;
     }
     float invDet = 1 / det;
+    */
 
     vec3 tvec = ray.origin - v0;
-    float u = dot(tvec, pvec) * invDet;
-    if (u < 0 || u > 1) {
-        result.hit = false;
-        return result;
-    }
+    float u = dot(tvec, pvec) / det;
     vec3 qvec = cross(tvec, v0v1);
-    float v = dot(ray.direction, qvec) * invDet;
-    if (v < 0 || u + v > 1) {
+    float v = dot(ray.direction, qvec) / det;
+    if (u >= 0 && v >= 0 && u + v <= 1) {
+        result.hit = true;
+    }
+    else {
         result.hit = false;
         return result;
     }
-
-    float t = dot(v0v2, qvec) * invDet;
+    float t = dot(v0v2, qvec) / det;
     if (t < 0) {
         result.hit = false;
         return result;
     }
-    result.hit = true;
     vec3 p = ray.origin + t * ray.direction;
     vec3 n = normalize(cross(v0v1, v0v2));
     if (this->hasTransf) {
@@ -144,11 +109,13 @@ Intersection Triangle::intersect(const Ray& ray) {
         vec4 homOrigin = this->m * vec4(ray.origin, 1);
         vec3 origin = vec3(homOrigin) / homOrigin.w;
         result.distance = length(result.point - origin);
+        result.rayDir = this->m * vec4(ray.direction, 0);
     }
     else {
         result.distance = t;
         result.normal = n;
         result.point = p;
+        result.rayDir = ray.direction;
     }
     return result;
 }
@@ -213,7 +180,7 @@ vec3 findColor(const InterObject& inObj, Camera cam) {
                 }
                 atten = 1.0;
                 NL = dot(hit.normal, direction);
-                vec3 halfvec = direction + (cam.position - hit.point);
+                vec3 halfvec = direction + normalize(-hit.rayDir);
                 halfvec = glm::normalize(halfvec);
                 NH = dot(hit.normal, halfvec);
             }
@@ -243,7 +210,7 @@ vec3 findColor(const InterObject& inObj, Camera cam) {
                 }
                 atten = curr_light.attenuation[0] + curr_light.attenuation[1] * dist + curr_light.attenuation[2] * dist * dist;
                 NL = dot(hit.normal, direction);
-                vec3 halfvec = direction + (cam.position - hit.point);
+                vec3 halfvec = direction + normalize(-hit.rayDir);
                 halfvec = glm::normalize(halfvec);
                 NH = dot(hit.normal, halfvec);
             }
