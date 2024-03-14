@@ -5,6 +5,7 @@
 Intersection Sphere::intersect(const Ray& ray) {
     // Sphere intersection logic...
     Intersection result;
+    float bound = pow(10, -2);
     // Set result.hit, result.distance, result.point, result.normal
     float a = dot(ray.direction, ray.direction);
     float b = 2 * dot(ray.direction, (ray.origin - center));
@@ -21,7 +22,7 @@ Intersection Sphere::intersect(const Ray& ray) {
     float t = 0.0;
     vec3 n = vec3(0);
 
-    if (t1 > (0) && t2 > (0)) {
+    if (t1 > (0 + bound) && t2 > (0 + bound)) {
         result.hit = true;
         if (t1 <= t2) {
             t = t1;
@@ -32,11 +33,11 @@ Intersection Sphere::intersect(const Ray& ray) {
             p = ray.direction * t + ray.origin;
         }
     }
-    else if (t1 > (0)) {
+    else if (t1 > (0 + bound)) {
         t = t1;
         p = ray.direction * t + ray.origin;
     }
-    else if (t2 > (0)) {
+    else if (t2 > (0 + bound)) {
         t = t2;
         p = ray.direction * t + ray.origin;
     }
@@ -69,6 +70,7 @@ Intersection Sphere::intersect(const Ray& ray) {
 Intersection Triangle::intersect(const Ray& ray) {
     // Implement Möller–Trumbore intersection algorithm
     Intersection result;
+    //float bound = pow(10, -2);
     vec3 v0v1 = v1 - v0;
     vec3 v0v2 = v2 - v0;
     vec3 pvec = cross(ray.direction, v0v2);
@@ -87,7 +89,7 @@ Intersection Triangle::intersect(const Ray& ray) {
     float u = dot(tvec, pvec) / det;
     vec3 qvec = cross(tvec, v0v1);
     float v = dot(ray.direction, qvec) / det;
-    if (u >= 0 && v >= 0 && u + v <= 1) {
+    if (u >= (0) && v >= (0) && u + v <= (1)) {
         result.hit = true;
     }
     else {
