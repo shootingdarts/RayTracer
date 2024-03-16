@@ -14,6 +14,7 @@
 struct Intersection {
     bool hit;
     float distance;
+    vec3 rayDir;
     vec3 point;
     vec3 normal;
 
@@ -67,18 +68,6 @@ public:
     Intersection intersect(const Ray& ray) override;
 };
 
-// Image structure
-struct Image {
-    int width, height;
-    std::vector<vec3> pixels;
-
-    Image(int width, int height) : width(width), height(height), pixels(width* height) {}
-
-    void setPixel(int x, int y, const vec3& color) {
-        pixels[y * width + x] = color;
-    }
-};
-
 enum light {directional, point};
 
 struct Light {
@@ -95,7 +84,6 @@ struct InterObject {
     InterObject(Intersection intx, SceneObject* obj) : intsect(intx), obj_light(obj) {}
 };
 
-Intersection findClosestIntersection(const Ray& ray);
 vec3 findColor(const InterObject& inObj, Camera cam);
 
 EXTERN int w, h;
