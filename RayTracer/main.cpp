@@ -71,7 +71,7 @@ void resetScene() {
 	currShininess = 1;
 	currEmission = vec3(0);
 	currAttenuation = vec3(1, 0, 0);
-	maxDepth = 10;
+	maxDepth = 5;
 	for (auto camera : cameras) {
 		delete camera;
 	}

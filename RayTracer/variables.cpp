@@ -97,7 +97,7 @@ Intersection Triangle::intersect(const Ray& ray) {
         return result;
     }
     float t = dot(v0v2, qvec) / det;
-    if (t < 0) {
+    if (t < 0 + kEpsilon) {
         result.hit = false;
         return result;
     }
