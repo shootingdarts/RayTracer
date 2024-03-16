@@ -64,42 +64,6 @@ Intersection Sphere::intersect(const Ray& ray) {
     return result;
 }
 
-/*
-Intersection Triangle::intersect(const Ray& ray){
-    // Implement Möller–Trumbore intersection algorithm
-    Intersection result;
-    // Calculate intersection, set result.hit, result.distance, result.point, result.normal
-    vec3 ba = v1 - v0;
-    vec3 ca = v2 - v0;
-    vec3 normal = cross(ba, ca);
-    normal = normalize(normal);
-    float t = (dot(v0, normal) - dot(ray.origin, normal)) / dot(ray.direction, normal);
-    vec3 p = ray.origin + t * ray.direction;
-    vec3 pa = p - v0;
-    if (length(ba) < length(ca)) {
-        vec3 temp = ca;
-        ca = ba;
-        ba = temp;
-    }
-    float gamma = (pa.x * ba.y / ba.x - pa.y) / (ba.y * ca.x / ba.x - ca.y);
-    float beta = (pa.y - gamma * ca.y) / ba.y;
-
-    float gamma = (pa.y - (ba.y * pa.x / ba.x)) / (ca.y - (ca.x * ba.y / ba.x));
-    float beta = (pa.y - gamma * ca.y) / ba.y;
-
-    result.hit = 0 < beta && beta < 1 && 0 < gamma && gamma < 1 && beta + gamma <= 1;
-    if (result.hit) {
-        result.distance = t;
-        result.point = p;
-        result.normal = normal;
-
-        //std::cout << normal.x << " " << normal.y << " " << normal.z << endl;
-    }
-    return result;
-}
-
-*/
-
 // https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/moller-trumbore-ray-triangle-intersection.html
 Intersection Triangle::intersect(const Ray& ray) {
     // Implement Möller–Trumbore intersection algorithm

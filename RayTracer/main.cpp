@@ -111,8 +111,9 @@ int main(int argc, char* argv[]) {
 				}
 				withOut.push_back(character);
 			}
-			outputFile = "images/" + outputFile;
-			//outputFile = "images/" + withOut + "-Image" + to_string(i) + ".png";
+			//outputFile = "images/" + outputFile;
+			
+			outputFile = "images/" + withOut + "-Image" + to_string(i) + ".png";
 			FreeImage_Save(FIF_PNG, img, outputFile.c_str(), 0);
 			cout << "Successfully saved " + withOut + "-Image" + to_string(i) + ".png" << endl;
 		}
